@@ -1,2 +1,2 @@
 # notacionPostfija
-Programa que permite evaluar proposiciones escritas en fórmula y traducidas a notación postfija
+Programa que permite evaluar proposiciones escritas en fórmula infija y las traduce a notación postfija
