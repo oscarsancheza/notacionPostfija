@@ -1,32 +1,23 @@
 package com.mcc;
 
-import java.io.BufferedReader;
+import java.io.File;
 import java.io.FileNotFoundException;
-import java.io.FileReader;
-import java.io.IOException;
+import java.util.Scanner;
 import java.util.Stack;
 
 public class Main {
 
-  private static final String rutaArchivo =
-      "/home/dessis-aux23/Documentos/maestria/notacionPostfija/formulas.txt";
-
   public static void main(String[] args) {
 
-    FileReader fileReader = null;
-    BufferedReader bufferedReader = null;
-
     try {
-
-      fileReader = new FileReader(Main.rutaArchivo);
-      bufferedReader = new BufferedReader(fileReader);
-
+      Scanner input = new Scanner(new File("formulas.txt"));
       String infijo;
       String[] listadoInfijo;
       StringBuilder postfijo;
       Stack<String> operadores;
 
-      while ((infijo = bufferedReader.readLine()) != null) {
+      while (input.hasNextLine()) {
+        infijo = input.nextLine();
         infijo = "(" + infijo + ")";
         listadoInfijo = infijo.split("");
         postfijo = new StringBuilder();
@@ -58,20 +49,7 @@ public class Main {
       }
 
     } catch (FileNotFoundException e) {
-      System.out.println("No se encontro el archivo en esa ruta. " + e.toString());
-    } catch (IOException e) {
-      System.out.println("Ha ocurrido un error." + e.toString());
-    } finally {
-      try {
-        if (fileReader != null) {
-          fileReader.close();
-        }
-        if (bufferedReader != null) {
-          bufferedReader.close();
-        }
-      } catch (IOException e) {
-        System.out.println("Ha ocurrido un error." + e.toString());
-      }
+      System.out.println("No se encontro el archivo. " + e.toString());
     }
   }
 }

@@ -10,4 +10,3 @@ p&q
 p=q
 p>q
 (p&q)>p
-((p|q)r&s)&(p|q|r&s)
