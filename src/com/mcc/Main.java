@@ -47,6 +47,9 @@ public class Main {
               operadores.pop();
             } else if (operadores.peek().equals("(") || caracterActual.equals("(")) {
               operadores.push(caracterActual);
+            } else {
+              postfijo.append(operadores.pop());
+              operadores.push(caracterActual);
             }
           }
         }
