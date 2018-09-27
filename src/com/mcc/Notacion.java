@@ -55,14 +55,14 @@ public class Notacion {
 
     Boolean[][] matriz = new Boolean[rows][cols + 1];
 
-    //System.out.println(caracteres.toString().replaceAll("[]\\,\\[]", ""));
+    // System.out.println(caracteres.toString().replaceAll("[]\\,\\[]", ""));
 
     for (int i = 0; i < rows; i++) {
       for (int j = cols - 1; j >= 0; j--) {
-        //System.out.print((i / (int) Math.pow(2, j)) % 2 == 0 ? "V " : "F ");
+        // System.out.print((i / (int) Math.pow(2, j)) % 2 == 0 ? "V " : "F ");
         matriz[i][j] = (i / (int) Math.pow(2, j)) % 2 == 0;
       }
-      //System.out.println();
+      // System.out.println();
     }
 
     return matriz;
@@ -77,46 +77,108 @@ public class Notacion {
     int countVerdaderos = 0;
     Stack<String> postfijoPila;
     char caracter;
+    boolean negado;
 
     for (int j = 0; j < matriz.length; j++) {
       postfijoPila = new Stack<>();
 
       for (int x = 0; x < postfijo.length(); x++) {
         caracter = postfijo.charAt(x);
+        negado = false;
 
-        if (postfijo.length() == 1 && matriz[j][caracteres.size()-1]) {
+        // si hay una negacion antes de un operador entonces todo lo que hay entre parentesis se
+        // convierte en negado
+        if (Character.toString(caracter).equals("-")
+            && x > 0
+            && !Character.isAlphabetic(postfijo.charAt(x - 1))) {
+          negado = true;
+        }
+
+        // si solo es un caracter cuenta los verdaderos de la matriz
+        if (postfijo.length() == 1 && matriz[j][caracteres.size() - 1]) {
           countVerdaderos++;
-        } else if (Character.isAlphabetic(caracter) || Character.toString(caracter).equals("-")) {
+
+          // mete operandos y negado a una pila solo si el negado no esta negando a todo
+        } else if (Character.isAlphabetic(caracter)
+            || Character.toString(caracter).equals("-") && !negado) {
           postfijoPila.push(Character.toString(caracter));
+
+          // entre cuando es un operador
         } else {
 
+          // para saber la posicion de los operandos
           String lineaCaracteres = caracteres.toString().replaceAll("[]\\,\\[ ]", "");
-          boolean valorUno;
+          boolean valorUno = false;
           boolean valorDos = false;
 
-          if (postfijoPila.size() > 1) {
-            if (postfijoPila.peek().equals("-")) {
-              postfijoPila.pop();
-              valorUno = !matriz[j][lineaCaracteres.indexOf(postfijoPila.pop())];
-            } else {
-              valorUno = matriz[j][lineaCaracteres.indexOf(postfijoPila.pop())];
+          // si esta negando a todo lo incluido entre parentesis niego la anterior operacion
+          if (negado) {
+            if (matriz[j][caracteres.size()]) {
+              countVerdaderos--;
+            }
+            matriz[j][caracteres.size()] = !matriz[j][caracteres.size()];
+          } else if (!postfijoPila.isEmpty()) {
+
+            // si solo es un operando o es un operando con su negacion se obtiene
+            // el valor anterior de la matriz y se hace operacion
+            if (postfijoPila.size() == 1
+                || (postfijoPila.size() == 2 && postfijoPila.peek().equals("-"))) {
+
+              if (postfijoPila.peek().equals("-")) {
+                postfijoPila.pop();
+                valorUno = !matriz[j][lineaCaracteres.indexOf(postfijoPila.pop())];
+              } else {
+                valorUno = matriz[j][lineaCaracteres.indexOf(postfijoPila.pop())];
+              }
+
+              if (matriz[j][caracteres.size()] != null) {
+                valorDos = matriz[j][caracteres.size()];
+              }
+
+              // si son mas de dos operandos se obtiene su valor
+            } else if (postfijoPila.size() > 1) {
+              if (postfijoPila.peek().equals("-")) {
+                postfijoPila.pop();
+                valorUno = !matriz[j][lineaCaracteres.indexOf(postfijoPila.pop())];
+              } else {
+                valorUno = matriz[j][lineaCaracteres.indexOf(postfijoPila.pop())];
+              }
+
+              if (postfijoPila.peek().equals("-")) {
+                postfijoPila.pop();
+                valorDos = !matriz[j][lineaCaracteres.indexOf(postfijoPila.pop())];
+              } else {
+                valorDos = matriz[j][lineaCaracteres.indexOf(postfijoPila.pop())];
+              }
             }
 
-            if (postfijoPila.peek().equals("-")) {
-              postfijoPila.pop();
-              valorDos = !matriz[j][lineaCaracteres.indexOf(postfijoPila.pop())];
-            } else {
-              valorDos = matriz[j][lineaCaracteres.indexOf(postfijoPila.pop())];
-            }
+            // si el siguiente es un operador que afecta a todo lo de un parentesis hace operacion actual
+            // con lo que tiene la matriz
+            if (x <= postfijo.length() - 2
+                && !Character.isAlphabetic(postfijo.charAt(x + 1))
+                && !Character.toString(postfijo.charAt(x + 1)).equals("-")) {
+              valorDos = tipoOperador(valorUno, valorDos, Character.toString(caracter));
+              if (matriz[j][caracteres.size()] != null) {
+                valorUno = matriz[j][caracteres.size()];
+              } else {
+                if (postfijoPila.peek().equals("-")) {
+                  postfijoPila.pop();
+                  valorUno = !matriz[j][lineaCaracteres.indexOf(postfijoPila.pop())];
+                } else {
+                  valorUno = matriz[j][lineaCaracteres.indexOf(postfijoPila.pop())];
+                }
+              }
 
-          } else {
-            valorUno = matriz[j][lineaCaracteres.indexOf(postfijoPila.pop())];
-            if (matriz[j][caracteres.size()] != null) {
-              valorDos = matriz[j][caracteres.size()];
+              matriz[j][caracteres.size()] =
+                  tipoOperador(valorUno, valorDos, Character.toString(postfijo.charAt(x + 1)));
+
+              // guarda la operacion en la matriz
+            } else {
+              matriz[j][caracteres.size()] =
+                  tipoOperador(valorUno, valorDos, Character.toString(caracter));
             }
           }
-          matriz[j][caracteres.size()] =
-              tipoOperador(valorUno, valorDos, Character.toString(caracter));
+          // cuenta los casos verdaderos mientras sea la ultima operacion de la evaluacion
           if (x == postfijo.length() - 1 && matriz[j][caracteres.size()]) {
             countVerdaderos++;
           }
@@ -175,14 +237,14 @@ public class Notacion {
         } else if (Character.isAlphabetic(caracterActual.charAt(0))) {
           postfijo.append(caracterActual);
         } else {
-          // se recorre toda la pila hasta que encuentre un (
           if (caracterActual.equals(")")) {
             while (!operadores.peek().equals("(")) {
               postfijo.append(operadores.pop());
             }
             operadores.pop();
-
             if (operadores.size() >= 1 && operadores.peek().equals("-")) {
+              postfijo.append(operadores.pop());
+            } else if (operadores.size() >= 1 && !operadores.peek().equals("(")) {
               postfijo.append(operadores.pop());
             }
           } else {
